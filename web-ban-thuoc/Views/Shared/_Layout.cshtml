@@ -1,0 +1,259 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Nhà Thuốc Long Châu</title>
+    <!-- Google Fonts: Inter with fallback -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet" />
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet" />
+    <!-- SweetAlert2 (modern alert/confirm popups) -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        // Popup thông báo hiện đại thay cho alert()
+        window.showAlert = function (message, options) {
+            options = options || {};
+            return Swal.fire({
+                text: message,
+                title: options.title,
+                icon: options.icon || 'info',
+                confirmButtonText: options.confirmButtonText || 'Đồng ý',
+                confirmButtonColor: '#1250dc',
+                heightAuto: false
+            });
+        };
+        // Hộp xác nhận hiện đại thay cho confirm(); trả về Promise<boolean>
+        window.showConfirm = function (message, options) {
+            options = options || {};
+            return Swal.fire({
+                text: message,
+                title: options.title || 'Xác nhận',
+                icon: options.icon || 'question',
+                showCancelButton: true,
+                confirmButtonText: options.confirmButtonText || 'Đồng ý',
+                cancelButtonText: options.cancelButtonText || 'Hủy',
+                confirmButtonColor: options.confirmButtonColor || '#1250dc',
+                cancelButtonColor: '#6b7280',
+                reverseButtons: true,
+                focusCancel: true,
+                heightAuto: false
+            }).then(function (result) { return result.isConfirmed; });
+        };
+        // Tiện ích cho form: onsubmit="return confirmSubmit(this, 'message')"
+        window.confirmSubmit = function (form, message, options) {
+            showConfirm(message, options).then(function (ok) {
+                if (ok) { HTMLFormElement.prototype.submit.call(form); }
+            });
+            return false;
+        };
+    </script>
+    <!-- Custom CSS -->
+    <link href="~/css/site.css" rel="stylesheet" />
+    <style>
+        #root {
+            background-color: #EAEFFA;
+        }
+
+        .header-bg {
+            background-image: url('/images/default/header_desktop.png');
+            background-size: cover;
+        }
+
+        .footer-top img {
+            width: 100%;
+            height: auto;
+        }
+
+        /* Toast notification styles */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+        }
+
+        .toast {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            border: none;
+        }
+
+        .toast-success {
+            border-left: 4px solid #28a745;
+        }
+
+        .toast-error {
+            border-left: 4px solid #dc3545;
+        }
+
+
+    </style>
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+
+<body>
+    <div id="root">
+        <partial name="_Header" />
+        <div class="navbar-wrapper bg-white border-bottom shadow-sm position-relative z-2">
+            @await Component.InvokeAsync("Navbar")
+        </div>
+        <main class="container py-4">
+            @RenderBody()
+        </main>
+        <partial name="_Footer" />
+    </div>
+    <!-- AI Chat Component -->
+    <partial name="_AiChatPopup" />
+    <!-- Toast notification container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- JavaScript để kích hoạt Tooltip -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl)
+            })
+        });
+
+        // Hàm hiển thị toast notification
+        function showToast(message, type = 'success') {
+            const toastContainer = document.getElementById('toastContainer');
+            const toastId = 'toast-' + Date.now();
+            
+            const toastHtml = `
+                <div class="toast toast-${type} show" id="${toastId}" role="alert">
+                    <div class="toast-header">
+                        <i class="fas fa-${type === 'success' ? 'check-circle text-success' : 'exclamation-circle text-danger'} me-2"></i>
+                        <strong class="me-auto">Thông báo</strong>
+                        <button type="button" class="btn-close" onclick="closeToast('${toastId}')"></button>
+                    </div>
+                    <div class="toast-body">
+                        ${message}
+                    </div>
+                </div>
+            `;
+            
+            toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+            
+            // Tự động ẩn sau 3 giây
+            setTimeout(() => {
+                closeToast(toastId);
+            }, 3000);
+        }
+
+        function closeToast(toastId) {
+            const toast = document.getElementById(toastId);
+            if (toast) {
+                toast.remove();
+            }
+        }
+
+        // Hiển thị toast từ TempData nếu có
+        @if (TempData["CartMessage"] != null)
+        {
+            <text>
+            showToast('@Html.Raw(TempData["CartMessage"])', 'success');
+            </text>
+        }
+
+        // Xử lý AJAX cho form thêm vào giỏ hàng
+        document.addEventListener('DOMContentLoaded', function() {
+            document.addEventListener('submit', function(e) {
+                if (e.target.classList.contains('add-to-cart-form')) {
+                    e.preventDefault();
+                    
+                    const form = e.target;
+                    const formData = new FormData(form);
+                    const submitBtn = form.querySelector('button[type="submit"]');
+                    const originalText = submitBtn.innerHTML;
+                    
+                    // Hiển thị loading
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Đang thêm...';
+                    submitBtn.disabled = true;
+                    
+                    fetch('/Cart/AddToCart', {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            showToast(data.message, 'success');
+                        } else if (data.requireLogin) {
+                            showToast(data.message, 'error');
+                        } else {
+                            showToast('Có lỗi xảy ra khi thêm sản phẩm!', 'error');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        showToast('Có lỗi xảy ra khi thêm sản phẩm!', 'error');
+                    })
+                    .finally(() => {
+                        // Khôi phục button
+                        submitBtn.innerHTML = originalText;
+                        submitBtn.disabled = false;
+                    });
+                }
+            });
+        });
+    </script>
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    @await Html.PartialAsync("_ChatPopup")
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    @RenderSection("Scripts", required: false)
+    <script>
+    // Hiển thị/ẩn popup chat AI
+    document.getElementById('ai-bot-chat-btn').onclick = function() {
+        document.getElementById('ai-bot-chat-popup').style.display = 'block';
+    };
+    document.getElementById('ai-bot-close').onclick = function() {
+        document.getElementById('ai-bot-chat-popup').style.display = 'none';
+    };
+    // Gửi tin nhắn (gọi AI thật)
+    document.getElementById('ai-bot-chat-form').onsubmit = async function(e) {
+        e.preventDefault();
+        var input = document.getElementById('ai-bot-input');
+        var body = document.getElementById('ai-bot-chat-body');
+        var msg = input.value.trim();
+        if (!msg) return;
+        body.innerHTML += `<div style='margin-bottom:8px;text-align:right;'><span style='background:#2563eb;color:#fff;padding:7px 14px;border-radius:16px 16px 2px 16px;display:inline-block;'>${msg}</span></div>`;
+        input.value = '';
+        body.scrollTop = body.scrollHeight;
+        // Hiển thị trạng thái đang trả lời
+        var loadingId = 'ai-bot-loading-' + Date.now();
+        body.innerHTML += `<div id='${loadingId}' style='margin-bottom:8px;text-align:left;'><span style='background:#e5e7eb;color:#222;padding:7px 14px;border-radius:16px 16px 16px 2px;display:inline-block;'>Đang trả lời...</span></div>`;
+        body.scrollTop = body.scrollHeight;
+        try {
+            const res = await fetch('/api/aibot/ask', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ question: msg })
+            });
+            const data = await res.json();
+            document.getElementById(loadingId).remove();
+            if (data.answer) {
+                body.innerHTML += `<div style='margin-bottom:8px;text-align:left;'><span style='background:#e5e7eb;color:#222;padding:7px 14px;border-radius:16px 16px 16px 2px;display:inline-block;'>${data.answer.replace(/\n/g,'<br>')}</span></div>`;
+            } else {
+                body.innerHTML += `<div style='margin-bottom:8px;text-align:left;'><span style='background:#ffe5e5;color:#d32f2f;padding:7px 14px;border-radius:16px 16px 16px 2px;display:inline-block;'>Lỗi: ${data.error || 'Không nhận được phản hồi từ AI.'}</span></div>`;
+            }
+        } catch (err) {
+            document.getElementById(loadingId).remove();
+            body.innerHTML += `<div style='margin-bottom:8px;text-align:left;'><span style='background:#ffe5e5;color:#d32f2f;padding:7px 14px;border-radius:16px 16px 16px 2px;display:inline-block;'>Lỗi kết nối AI!</span></div>`;
+        }
+        body.scrollTop = body.scrollHeight;
+    };
+    </script>
+</body>
+
+</html>

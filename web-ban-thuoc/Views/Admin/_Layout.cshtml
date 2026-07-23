@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Long Châu Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/site.css" />
+    <link rel="stylesheet" href="/css/admin.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+    @await RenderSectionAsync("Styles", required: false)
+    <!-- SweetAlert2 (modern alert/confirm popups) -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        // Popup thông báo hiện đại thay cho alert()
+        window.showAlert = function (message, options) {
+            options = options || {};
+            return Swal.fire({
+                text: message,
+                title: options.title,
+                icon: options.icon || 'info',
+                confirmButtonText: options.confirmButtonText || 'Đồng ý',
+                confirmButtonColor: '#1250dc',
+                heightAuto: false
+            });
+        };
+        // Hộp xác nhận hiện đại thay cho confirm(); trả về Promise<boolean>
+        window.showConfirm = function (message, options) {
+            options = options || {};
+            return Swal.fire({
+                text: message,
+                title: options.title || 'Xác nhận',
+                icon: options.icon || 'question',
+                showCancelButton: true,
+                confirmButtonText: options.confirmButtonText || 'Đồng ý',
+                cancelButtonText: options.cancelButtonText || 'Hủy',
+                confirmButtonColor: options.confirmButtonColor || '#1250dc',
+                cancelButtonColor: '#6b7280',
+                reverseButtons: true,
+                focusCancel: true,
+                heightAuto: false
+            }).then(function (result) { return result.isConfirmed; });
+        };
+        // Tiện ích cho form: onsubmit="return confirmSubmit(this, 'message')"
+        window.confirmSubmit = function (form, message, options) {
+            showConfirm(message, options).then(function (ok) {
+                if (ok) { HTMLFormElement.prototype.submit.call(form); }
+            });
+            return false;
+        };
+    </script>
+</head>
+<body class="admin-body">
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeMobileSidebar()"></div>
+
+    <div class="admin-wrapper">
+        <aside id="adminSidebar" class="admin-sidebar">
+            <div class="sidebar-brand">
+                <img src="/images/default/header_logo_brand.png" alt="Long Châu" class="sidebar-logo" />
+                <button type="button" class="sidebar-toggle" onclick="toggleSidebar()" aria-label="Thu gọn menu">
+                    <i class="fa-solid fa-angles-left" id="sidebarToggleIcon"></i>
+                </button>
+            </div>
+
+            <div class="sidebar-scroll">
+                @await Component.InvokeAsync("AdminNotification")
+                @await Component.InvokeAsync("AdminSidebar")
+            </div>
+
+            <div class="sidebar-footer">
+                <form method="post" action="/Auth/Logout">
+                    <button type="submit" class="btn-logout" title="Đăng xuất">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                        <span class="sidebar-text">Đăng xuất</span>
+                    </button>
+                </form>
+            </div>
+        </aside>
+
+        <div class="admin-main">
+            <header class="admin-topbar">
+                <div class="d-flex align-items-center gap-3">
+                    <button type="button" class="mobile-menu-btn" onclick="openMobileSidebar()" aria-label="Mở menu">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <div>
+                        <h1 class="admin-topbar-title">@ViewData["Title"]</h1>
+                        <div class="admin-topbar-sub d-none d-md-block">
+                            Xin chào, <strong>@(User.Identity?.Name ?? "Nhân viên")</strong>
+                        </div>
+                    </div>
+                </div>
+                <a href="/" class="btn btn-sm btn-outline-primary d-none d-md-inline-flex align-items-center gap-1" target="_blank">
+                    <i class="fa-solid fa-external-link-alt"></i> Xem website
+                </a>
+            </header>
+            <div class="admin-content">
+                @RenderBody()
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    @await Html.PartialAsync("_ToastPartial")
+
+    <script>
+        function toggleSidebar() {
+            var sidebar = document.getElementById('adminSidebar');
+            sidebar.classList.toggle('collapsed');
+            var icon = document.getElementById('sidebarToggleIcon');
+            icon.classList.toggle('fa-angles-left');
+            icon.classList.toggle('fa-angles-right');
+            localStorage.setItem('adminSidebarCollapsed', sidebar.classList.contains('collapsed'));
+        }
+
+        function openMobileSidebar() {
+            document.getElementById('adminSidebar').classList.add('mobile-open');
+            document.getElementById('sidebarOverlay').classList.add('show');
+        }
+
+        function closeMobileSidebar() {
+            document.getElementById('adminSidebar').classList.remove('mobile-open');
+            document.getElementById('sidebarOverlay').classList.remove('show');
+        }
+
+        function updateNotificationBadges() {
+            var po = document.getElementById('pendingOrdersBadge');
+            var msg = document.getElementById('unreadMessagesBadge');
+            if (po) po.style.display = (window.pendingOrders > 0) ? 'block' : 'none';
+            if (msg) msg.style.display = (window.unreadMessages > 0) ? 'block' : 'none';
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            if (localStorage.getItem('adminSidebarCollapsed') === 'true') {
+                toggleSidebar();
+            }
+            updateNotificationBadges();
+            document.querySelectorAll('.sidebar-nav .nav-link').forEach(function (link) {
+                link.addEventListener('click', closeMobileSidebar);
+            });
+        });
+
+        setInterval(updateNotificationBadges, 30000);
+    </script>
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

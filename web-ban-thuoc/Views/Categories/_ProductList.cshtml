@@ -1,0 +1,45 @@
+@model List<web_ban_thuoc.Models.Product>
+
+<div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4" id="product-list">
+    @if (Model != null && Model.Any())
+    {
+        foreach (var product in Model)
+        {
+            var mainImage = product.ProductImages?.FirstOrDefault(i => i.IsMain == true) ??
+            product.ProductImages?.FirstOrDefault();
+            <div class="col">
+                <div class="bg-white rounded-3 shadow-sm overflow-hidden hover-border hover-border-blue-500 h-100">
+                    <a class="text-decoration-none" href="@Url.Action("Details", "Product", new { id = product.ProductId })">
+                        <img src="/images/products/@(mainImage?.ImageUrl ?? "/images/sanpham.png")" class="p-3 w-100"
+                            alt="@product.ProductName" />
+                        <div class="px-3 pb-3">
+                            <h5 class="text-sm text-black line-clamp-3" style="height: 44px;">@product.ProductName</h5>
+                            <div class="mt-1 text-primary fw-semibold">@product.Price.ToString("N0")đ</div>
+                            <div class="text-gray-500 text-sm text-decoration-line-through opacity-50">@((product.Price *
+                                                                            1.25m).ToString("N0"))đ</div>
+                            <p class="mt-1 bg-gray-200 text-gray-600 rounded text-xs w-fit opacity-50">@(product.Package ??
+                                                                            "Hộp")</p>
+                        </div>
+                    </a>
+                    <div class="px-3 pb-3">
+                        <form asp-controller="Cart" asp-action="AddToCart" method="post" class="add-to-cart-form">
+                            <input type="hidden" name="productId" value="@product.ProductId" />
+                            <input type="hidden" name="quantity" value="1" />
+                            <button type="submit" class="btn btn-primary w-100 rounded-pill">Thêm vào giỏ</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="col-12 text-center text-muted">
+            <div class="py-5">
+                <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">Không tìm thấy sản phẩm nào</h5>
+                <p class="text-muted">Hãy thử thay đổi bộ lọc hoặc tìm kiếm với từ khóa khác.</p>
+            </div>
+        </div>
+    }
+</div> 

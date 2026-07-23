@@ -1,0 +1,44 @@
+using System;
+using System.Collections.Generic;
+
+namespace web_ban_thuoc.Models;
+
+public partial class Order
+{
+    public int OrderId { get; set; }
+
+    // Đổi UserId sang string? để phù hợp với Identity
+    public string? UserId { get; set; }
+
+    public DateTime? OrderDate { get; set; }
+
+    public decimal? TotalAmount { get; set; }
+
+    public string? Status { get; set; }
+
+    public string? ShippingAddress { get; set; }
+
+    public int? ProvinceId { get; set; }
+    public int? DistrictId { get; set; }
+    public string? WardCode { get; set; }
+    public string? HouseNumber { get; set; }
+
+    public string? PaymentStatus { get; set; }
+
+    public string? FullName { get; set; }
+    public string? Phone { get; set; }
+
+    public string? VoucherCode { get; set; }
+    public decimal? VoucherDiscount { get; set; }
+    public string? PrescriptionNote { get; set; }
+
+    public virtual ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
+
+    public virtual ICollection<Payment> Payments { get; set; } = new List<Payment>();
+
+    public virtual ICollection<OrderStatusHistory> StatusHistories { get; set; } = new List<OrderStatusHistory>();
+
+    public virtual Microsoft.AspNetCore.Identity.IdentityUser? User { get; set; }
+
+    public virtual Shipment? Shipment { get; set; }
+}

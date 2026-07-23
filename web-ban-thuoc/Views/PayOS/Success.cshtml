@@ -1,0 +1,47 @@
+@model web_ban_thuoc.Models.Order
+@{
+    ViewData["Title"] = "Thanh toán thành công";
+}
+
+@section Styles {
+    <link href="~/css/payos.css" rel="stylesheet" />
+}
+
+<div class="payos-page">
+    <div class="payos-card">
+        <div class="payos-card__body">
+            <div class="payos-result">
+                <div class="payos-result__icon payos-result__icon--success">
+                    <i class="fas fa-check"></i>
+                </div>
+                <h1>Thanh toán thành công!</h1>
+                <p class="payos-result__sub">
+                    Cảm ơn bạn đã mua hàng tại <strong>Nhà Thuốc Long Châu</strong>.
+                    Chúng tôi đã gửi xác nhận đơn hàng qua email cho bạn.
+                </p>
+
+                <div class="payos-result__recap">
+                    <div class="payos-info-row">
+                        <span class="label">Mã đơn hàng</span>
+                        <span class="value">#@Model?.OrderId</span>
+                    </div>
+                    <div class="payos-info-row">
+                        <span class="label">Tổng tiền</span>
+                        <span class="value">@Model?.TotalAmount?.ToString("N0") VNĐ</span>
+                    </div>
+                    <div class="payos-info-row">
+                        <span class="label">Trạng thái</span>
+                        <span class="value">
+                            <span class="payos-badge payos-badge--success"><i class="fas fa-check"></i> Đã thanh toán</span>
+                        </span>
+                    </div>
+                </div>
+
+                <div class="payos-result__actions">
+                    <a href="/" class="payos-btn payos-btn--primary"><i class="fas fa-home"></i> Về trang chủ</a>
+                    <a href="/Cart/Index" class="payos-btn payos-btn--ghost"><i class="fas fa-shopping-cart"></i> Giỏ hàng</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

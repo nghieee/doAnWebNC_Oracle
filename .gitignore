@@ -1,0 +1,54 @@
+# Visual Studio
+.vs/
+# Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bin/
+obj/
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+# Rider
+.idea/
+*.sln.iml
+# ASP.NET Scaffolding
+ScaffoldingReadMe.txt
+# Dotnet watch
+**/node_modules/
+# Logs
+*.log
+# OS generated files
+.DS_Store
+Thumbs.db
+# Publish
+publish/
+# Secret config — NEVER commit these
+appsettings.json
+appsettings.Development.json
+appsettings.Production.json
+appsettings.Staging.json
+appsettings.*.local.json
+appsettings.*.example.json
+secrets.json
+.env
+.env.*
+# VS Code
+.vscode/
+# Backup
+*~
+# NPM/Yarn
+package-lock.json
+yarn.lock
+# Others
+*.swp
+*.bak
+*.tmp
+changes.patch
+*.patch
+*.msi

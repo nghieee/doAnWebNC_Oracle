@@ -1,0 +1,75 @@
+@model web_ban_thuoc.Models.Order
+
+@{
+    ViewData["Title"] = "Thanh toán bị hủy";
+}
+
+@section Styles {
+    <link href="~/css/payos.css" rel="stylesheet" />
+}
+
+<div class="payos-page">
+    <div class="payos-card">
+        <div class="payos-card__body">
+            <div class="payos-result">
+                <div class="payos-result__icon payos-result__icon--warning">
+                    <i class="fas fa-ban"></i>
+                </div>
+                <h1>Thanh toán đã bị hủy</h1>
+                <p class="payos-result__sub">
+                    Bạn đã hủy quá trình thanh toán. Đơn hàng đã được ghi nhận trạng thái <strong>đã hủy</strong>.
+                </p>
+
+                @if (Model != null)
+                {
+                    <div class="payos-result__recap">
+                        <div class="payos-info-row">
+                            <span class="label">Mã đơn hàng</span>
+                            <span class="value">#@Model.OrderId</span>
+                        </div>
+                        <div class="payos-info-row">
+                            <span class="label">Ngày đặt</span>
+                            <span class="value">@Model.OrderDate?.ToString("dd/MM/yyyy HH:mm")</span>
+                        </div>
+                        <div class="payos-info-row">
+                            <span class="label">Tổng tiền</span>
+                            <span class="value">@Model.TotalAmount?.ToString("N0") VNĐ</span>
+                        </div>
+                        <div class="payos-info-row">
+                            <span class="label">Trạng thái</span>
+                            <span class="value">
+                                <span class="payos-badge payos-badge--pending"><i class="fas fa-ban"></i> Đã hủy</span>
+                            </span>
+                        </div>
+                    </div>
+                }
+
+                <div class="payos-result__actions">
+                    <a href="@Url.Action("Index", "Cart")" class="payos-btn payos-btn--primary"><i class="fas fa-shopping-cart"></i> Về giỏ hàng</a>
+                    <a href="@Url.Action("Index", "Home")" class="payos-btn payos-btn--ghost"><i class="fas fa-home"></i> Về trang chủ</a>
+                </div>
+
+                <div class="payos-help">
+                    <i class="fas fa-circle-info"></i>
+                    <div>
+                        <strong>Lưu ý</strong>
+                        <ul>
+                            <li>Đơn hàng này đã được ghi nhận trạng thái <strong>đã hủy</strong> và không thể thanh toán lại.</li>
+                            <li>Nếu muốn mua, vui lòng thêm sản phẩm vào giỏ hàng và đặt đơn mới.</li>
+                            <li>Hotline hỗ trợ: <a href="tel:18006928" class="fw-semibold">1800 6928</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Tự động chuyển về trang chủ sau 15 giây
+        setTimeout(function () {
+            window.location.href = '@Url.Action("Index", "Home")';
+        }, 15000);
+    </script>
+}

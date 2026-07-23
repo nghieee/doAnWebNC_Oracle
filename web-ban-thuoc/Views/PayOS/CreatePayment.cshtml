@@ -1,0 +1,210 @@
+@model web_ban_thuoc.Models.Order
+
+@{
+    ViewData["Title"] = "Thanh toán PayOS";
+    var subtotal = (Model?.OrderItems != null && Model.OrderItems.Any())
+        ? Model.OrderItems.Sum(i => i.Price * i.Quantity)
+        : (Model?.TotalAmount ?? 0);
+    var discount = Model?.VoucherDiscount ?? 0;
+}
+
+@section Styles {
+    <link href="~/css/payos.css" rel="stylesheet" />
+}
+
+@Html.AntiForgeryToken()
+
+<div class="payos-page">
+    <div class="payos-card">
+        <div class="payos-card__header">
+            <span class="payos-card__icon"><i class="fas fa-shield-halved"></i></span>
+            <div>
+                <h1>Thanh toán qua PayOS</h1>
+                <small>Cổng thanh toán an toàn &amp; nhanh chóng</small>
+            </div>
+        </div>
+
+        <div class="payos-card__body">
+            @if (Model != null)
+            {
+                <div class="payos-loading" id="payosLoading">
+                    <div class="payos-spinner"></div>
+                    <h2>Đang chuẩn bị thanh toán...</h2>
+                    <p>Vui lòng kiểm tra thông tin đơn hàng và nhấn “Tiến hành thanh toán”.</p>
+                </div>
+
+                <div class="payos-grid">
+                    <div>
+                        <div class="payos-panel">
+                            <div class="payos-panel__title"><i class="fas fa-receipt"></i> Thông tin đơn hàng</div>
+                            <div class="payos-info-row">
+                                <span class="label">Mã đơn hàng</span>
+                                <span class="value">#@Model.OrderId</span>
+                            </div>
+                            <div class="payos-info-row">
+                                <span class="label">Ngày đặt</span>
+                                <span class="value">@Model.OrderDate?.ToString("dd/MM/yyyy HH:mm")</span>
+                            </div>
+                            <div class="payos-info-row">
+                                <span class="label">Trạng thái</span>
+                                <span class="value">
+                                    <span class="payos-badge payos-badge--pending">
+                                        <i class="fas fa-clock"></i> Chờ thanh toán
+                                    </span>
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="payos-panel">
+                            <div class="payos-panel__title"><i class="fas fa-user"></i> Thông tin khách hàng</div>
+                            <div class="payos-info-row">
+                                <span class="label">Họ tên</span>
+                                <span class="value">@Model.FullName</span>
+                            </div>
+                            <div class="payos-info-row">
+                                <span class="label">Số điện thoại</span>
+                                <span class="value">@Model.Phone</span>
+                            </div>
+                            <div class="payos-info-row">
+                                <span class="label">Địa chỉ</span>
+                                <span class="value">@Model.ShippingAddress</span>
+                            </div>
+                        </div>
+
+                        @if (Model.OrderItems != null && Model.OrderItems.Any())
+                        {
+                            <div class="payos-panel">
+                                <div class="payos-panel__title"><i class="fas fa-box-open"></i> Sản phẩm đã đặt (@Model.OrderItems.Count())</div>
+                                <div class="payos-products">
+                                    @foreach (var item in Model.OrderItems)
+                                    {
+                                        <div class="payos-product">
+                                            @if (item.Product?.ProductImages?.Any() == true)
+                                            {
+                                                <img class="payos-product__img" src="@item.Product.ProductImages.First().ImageUrl" alt="@item.Product?.ProductName">
+                                            }
+                                            else
+                                            {
+                                                <span class="payos-product__img payos-product__img--placeholder"><i class="fas fa-pills"></i></span>
+                                            }
+                                            <div class="payos-product__info">
+                                                <div class="payos-product__name">@item.Product?.ProductName</div>
+                                                <div class="payos-product__meta">@item.Quantity x @item.Price.ToString("N0") VNĐ</div>
+                                            </div>
+                                            <div class="payos-product__amount">
+                                                <div class="total">@((item.Price * item.Quantity).ToString("N0")) VNĐ</div>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <div>
+                        <div class="payos-summary">
+                            <div class="payos-summary__head"><i class="fas fa-wallet me-1"></i> Tóm tắt thanh toán</div>
+                            <div class="payos-summary__body">
+                                <div class="payos-summary__row">
+                                    <span>Tạm tính</span>
+                                    <span class="val">@subtotal.ToString("N0") VNĐ</span>
+                                </div>
+                                @if (discount > 0)
+                                {
+                                    <div class="payos-summary__row payos-summary__row--discount">
+                                        <span>Giảm giá @(string.IsNullOrEmpty(Model.VoucherCode) ? "" : $"({Model.VoucherCode})")</span>
+                                        <span class="val">-@discount.ToString("N0") VNĐ</span>
+                                    </div>
+                                }
+                                <div class="payos-summary__total">
+                                    <span class="lbl">Tổng cộng</span>
+                                    <span class="amount">@Model.TotalAmount?.ToString("N0") VNĐ</span>
+                                </div>
+
+                                <div class="mt-3">
+                                    <button type="button" class="payos-btn payos-btn--pay" id="btnPay" onclick="createPayment(this)">
+                                        <i class="fas fa-credit-card"></i> Tiến hành thanh toán
+                                    </button>
+                                    <a href="@Url.Action("Index", "Cart")" class="payos-btn payos-btn--ghost">
+                                        <i class="fas fa-arrow-left"></i> Quay lại giỏ hàng
+                                    </a>
+                                </div>
+
+                                <div class="payos-secure-note">
+                                    <i class="fas fa-lock"></i> Giao dịch được mã hoá &amp; bảo mật bởi PayOS
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="payos-result">
+                    <div class="payos-result__icon payos-result__icon--warning"><i class="fas fa-triangle-exclamation"></i></div>
+                    <h1>Không tìm thấy đơn hàng</h1>
+                    <p class="payos-result__sub">Đơn hàng không tồn tại hoặc đã bị xóa.</p>
+                    <div class="payos-result__actions">
+                        <a href="@Url.Action("Index", "Cart")" class="payos-btn payos-btn--primary">
+                            <i class="fas fa-shopping-cart"></i> Về giỏ hàng
+                        </a>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function createPayment(btnElement = null) {
+            const btn = btnElement || document.getElementById('btnPay');
+            let originalText = '';
+            if (btn) {
+                originalText = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang xử lý...';
+                btn.disabled = true;
+            }
+
+            const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+            const headers = { 'Content-Type': 'application/json' };
+            if (token) {
+                headers['RequestVerificationToken'] = token;
+            }
+
+            fetch('/PayOS/ProcessPayment', {
+                method: 'POST',
+                headers: headers,
+                body: JSON.stringify({ orderId: @(Model?.OrderId ?? 0) })
+            })
+                .then(res => res.json())
+                .then(result => {
+                    if (result.success && result.checkoutUrl) {
+                        window.location.href = result.checkoutUrl;
+                    } else {
+                        showAlert(result.message || 'Có lỗi xảy ra khi tạo thanh toán!', { icon: 'error' });
+                        if (btn && originalText) {
+                            btn.innerHTML = originalText;
+                            btn.disabled = false;
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Fetch Error:', error);
+                    showAlert('Có lỗi xảy ra khi tạo thanh toán!', { icon: 'error' });
+                    if (btn && originalText) {
+                        btn.innerHTML = originalText;
+                        btn.disabled = false;
+                    }
+                });
+        }
+
+        // Tự động tạo thanh toán sau 2 giây nếu người dùng chưa thao tác
+        setTimeout(function () {
+            const btn = document.getElementById('btnPay');
+            if (btn && !btn.disabled) {
+                createPayment(btn);
+            }
+        }, 2000);
+    </script>
+}
