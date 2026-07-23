@@ -2,12 +2,14 @@ using Microsoft.EntityFrameworkCore;
 using web_ban_thuoc.Models;
 using Microsoft.AspNetCore.Identity;
 using web_ban_thuoc.Services;
+using Oracle.EntityFrameworkCore.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Register the LongChauDbContext with dependency injection
 builder.Services.AddDbContext<LongChauDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseOracle(builder.Configuration.GetConnectionString("DefaultConnection"),
+        ob => ob.UseOracleSQLCompatibility(OracleSQLCompatibility.DatabaseVersion19)));
 
 builder.Services.AddHttpContextAccessor();
 
@@ -68,6 +70,22 @@ builder.Services.AddScoped<IGHNService, GHNService>();
 builder.Services.AddScoped<IOrderEmailService, OrderEmailService>();
 
 var app = builder.Build();
+
+// Run database migration if requested via command-line args
+if (args.Contains("--migrate-data"))
+{
+    var sqlServerConn = app.Configuration.GetConnectionString("SqlServerConnection");
+    var oracleConn = app.Configuration.GetConnectionString("DefaultConnection");
+    
+    if (string.IsNullOrEmpty(sqlServerConn) || string.IsNullOrEmpty(oracleConn))
+    {
+        Console.WriteLine("Loi: Khong tim thay ConnectionString 'SqlServerConnection' hoac 'DefaultConnection'!");
+        return;
+    }
+    
+    web_ban_thuoc.Data.DbMigrator.Migrate(sqlServerConn, oracleConn);
+    return; // Dung ung dung sau khi di chuyen du lieu xong
+}
 
 // Dev: tự apply migration + seed
 using (var scope = app.Services.CreateScope())

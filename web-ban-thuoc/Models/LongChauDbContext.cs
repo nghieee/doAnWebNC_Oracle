@@ -252,7 +252,7 @@ public class LongChauDbContext : IdentityDbContext
         modelBuilder.Entity<Product>()
             .HasIndex(p => p.Sku)
             .IsUnique()
-            .HasFilter("[Sku] IS NOT NULL AND [Sku] <> ''");
+            .HasFilter("\"SKU\" IS NOT NULL");
 
         modelBuilder.Entity<Product>()
             .HasOne(p => p.Supplier)
@@ -284,7 +284,7 @@ public class LongChauDbContext : IdentityDbContext
 
         modelBuilder.Entity<LoyaltyPointTransaction>()
             .HasIndex(t => new { t.UserId, t.OrderId, t.TransactionType })
-            .HasFilter("[OrderId] IS NOT NULL");
+            .HasFilter("\"ORDERID\" IS NOT NULL");
 
         modelBuilder.Entity<LoyaltyPointTransaction>()
             .HasOne<LoyaltyReward>()
@@ -340,11 +340,49 @@ public class LongChauDbContext : IdentityDbContext
             .HasForeignKey(sad => sad.ProductBatchId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        modelBuilder.Entity<DbActivityLog>()
+            .Property(l => l.Description)
+            .HasColumnType("NCLOB");
+
+        modelBuilder.Entity<Product>()
+            .Property(p => p.Ingredients)
+            .HasColumnType("NCLOB");
+
+        modelBuilder.Entity<Product>()
+            .Property(p => p.Uses)
+            .HasColumnType("NCLOB");
+
+        modelBuilder.Entity<Product>()
+            .Property(p => p.Dosage)
+            .HasColumnType("NCLOB");
+
+        modelBuilder.Entity<Product>()
+            .Property(p => p.TargetUsers)
+            .HasColumnType("NCLOB");
+
+        modelBuilder.Entity<Product>()
+            .Property(p => p.Contraindications)
+            .HasColumnType("NCLOB");
+
+        modelBuilder.Entity<News>()
+            .Property(n => n.Content)
+            .HasColumnType("NCLOB");
+
+        modelBuilder.Entity<PayOSWebhookEvent>()
+            .Property(e => e.RawPayload)
+            .HasColumnType("NCLOB");
+
         base.OnModelCreating(modelBuilder);
     }
 
+    public bool DisableAuditing { get; set; } = false;
+
     public override int SaveChanges()
     {
+        if (DisableAuditing)
+        {
+            return base.SaveChanges();
+        }
         var auditEntries = OnBeforeSaveChanges();
         var result = base.SaveChanges();
         OnAfterSaveChanges(auditEntries);
@@ -353,6 +391,10 @@ public class LongChauDbContext : IdentityDbContext
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
+        if (DisableAuditing)
+        {
+            return await base.SaveChangesAsync(cancellationToken);
+        }
         var auditEntries = OnBeforeSaveChanges();
         var result = await base.SaveChangesAsync(cancellationToken);
         await OnAfterSaveChangesAsync(auditEntries, cancellationToken);

@@ -32,29 +32,27 @@ Procedure / Trigger
 
 | Các sơ đồ | Mô tả tại phần nào | Các phần cài đặt liên quan |
 |---|---|---|
-| **Organization Chart** | Mục 1.1.2 | Mục 4.3.5 (Mô hình phân quyền — Authorization model) |
-| **BFD** (Business Function Diagram) | Mục 3.1.1 | Mục 4.3.2 (Procedure) |
-| **DFD** (Data Flow Diagram) | Mục 3.2.2 | Mục 4.3.3 (Transaction) |
-| **Business Rules** | Mục 3.1.3 (Business Rule) | Trigger và Constraint |
-| **ERD** (Entity Relationship Diagram) | Mục 3.2.1 | Mục 4.1 |
-| **Oracle Tables** | Mục 4.1, Mục 4.2 | — |
-| **Procedure / Trigger** | Mục 4.3.2 | — |
-| **Transaction** | Mục 4.3.3 | — |
-| **User / Role** | Mục 4.3.5 | — |
-
-> **Lưu ý**: Trong file hướng dẫn môn học thiếu mục **3.1.3 Business Rule** — cần bổ sung khi viết báo cáo.
+| Organization Chart | Mục 1.1.2 | Mục 4.3.5 (Mô hình phân quyền) |
+| BFD | Mục 3.1.1 | Mục 4.3.2 (Procedure) |
+| DFD | Mục 3.2.2 | Mục 4.3.3 (Transaction) |
+| Business Rules | Mục 3.1.3 (Business Rule)<br>*(Lưu ý: trong file hướng dẫn thiếu mục này)* | Trigger và Constraint |
+| ERD | Mục 3.2.1 | Mục 4.1 |
+| Oracle Tables | Mục 4.1, Mục 4.2 | |
+| Procedure / Trigger | Mục 4.3.2 | |
+| Transaction | Mục 4.3.3 | |
+| User / Role | Mục 4.3.5 | |
 
 ---
 
 ## 2. MỤC ĐÍCH TỪNG SƠ ĐỒ
 
-| Sơ đồ | Trả lời câu hỏi | Dùng cho chương / thành phần |
+| Sơ đồ | Trả lời câu hỏi | Dùng cho chương nào |
 |---|---|---|
-| **Organization Chart** | Ai tham gia hệ thống? | User, Role, Privilege |
-| **BFD** | Hệ thống làm gì? | Procedure, Function |
-| **DFD** | Dữ liệu di chuyển thế nào? | Transaction |
-| **Business Rules** | Ràng buộc gì tồn tại? | Trigger, Constraint |
-| **ERD** | Lưu dữ liệu gì? | Table Design |
+| Organization Chart | Ai tham gia hệ thống? | User, Role, Privilege |
+| BFD | Hệ thống làm gì? | Procedure, Function |
+| DFD | Dữ liệu di chuyển thế nào? | Transaction |
+| Business Rules | Ràng buộc gì tồn tại? | Trigger, Constraint |
+| ERD | Lưu dữ liệu gì? | Table Design |
 
 ---
 
