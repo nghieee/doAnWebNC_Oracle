@@ -87,6 +87,7 @@ if (args.Contains("--migrate-data"))
     return; // Dung ung dung sau khi di chuyen du lieu xong
 }
 
+
 // Dev: tự apply migration + seed
 using (var scope = app.Services.CreateScope())
 {
